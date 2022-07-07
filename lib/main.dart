@@ -99,7 +99,6 @@ class _RoutePlannerState extends State<RoutePlanner> {
   }
 
   Future<http.Response> _fetchPath(int t) {
-    // TODO: access control on API
     const uri = Config.lambdaUri;
     final data = {
       "lat": _markers.map((e) => e.latitude).toList(),
