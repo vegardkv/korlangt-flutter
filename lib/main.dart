@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:leaflet_test_1/config.dart';
 import 'package:positioned_tap_detector_2/positioned_tap_detector_2.dart';
 import 'package:http/http.dart' as http;
 import 'package:geojson/geojson.dart';
@@ -81,17 +82,11 @@ class _RoutePlannerState extends State<RoutePlanner> {
     });
     if (_markers.length < 2) return;
     final features = await _fetchPath(now);
-    // TODO:
-    // - Verify that await does not block the entire app
-    // - What happens with quick additions of markers?
-    // - If length of markers has changed, take action (e.g. do not draw path)
     if (features.statusCode != 200) {
       log("Failed to connect with error code ${features.statusCode}");
     } else {
-      log("Updating path");
       final int t = jsonDecode((features.request as http.Request).body)["t"];
       if (t != _lastRequest) {
-        log("Dropping update since a newer route has been requested");
         return;
       }
       final gj = jsonDecode(features.body);
@@ -105,8 +100,7 @@ class _RoutePlannerState extends State<RoutePlanner> {
 
   Future<http.Response> _fetchPath(int t) {
     // TODO: access control on API
-    const uri =
-        "https://8511agftjd.execute-api.eu-north-1.amazonaws.com/default/development-route-planning/plan";
+    const uri = Config.lambdaUri;
     final data = {
       "lat": _markers.map((e) => e.latitude).toList(),
       "lon": _markers.map((e) => e.longitude).toList(),
