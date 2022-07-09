@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:leaflet_test_1/plannedroute.dart';
 import 'package:leaflet_test_1/config.dart';
 import 'package:positioned_tap_detector_2/positioned_tap_detector_2.dart';
 import 'package:http/http.dart' as http;
@@ -41,8 +42,8 @@ class RoutePlanner extends StatefulWidget {
 
 class _RoutePlannerState extends State<RoutePlanner> {
   final _markers = <LatLng>[];
-  final _path = <LatLng>[];
   var _lastRequest = 0;
+  PlannedRoute? _route;
 
   List<Marker> _buildMarkers() {
     return _markers.fold([], (prev, latlng) {
@@ -77,7 +78,7 @@ class _RoutePlannerState extends State<RoutePlanner> {
   void _updatePath() async {
     var now = DateTime.now().microsecondsSinceEpoch;
     setState(() {
-      _path.clear();
+      _route = null;
       _lastRequest = now;
     });
     if (_markers.length < 2) return;
@@ -91,9 +92,7 @@ class _RoutePlannerState extends State<RoutePlanner> {
       }
       final gj = jsonDecode(features.body);
       setState(() {
-        for (var c in gj["geometry"]["coordinates"]) {
-          _path.add(LatLng(c[1], c[0]));
-        }
+        _route = PlannedRoute.fromGeoJson(gj);
       });
     }
   }
@@ -144,7 +143,7 @@ class _RoutePlannerState extends State<RoutePlanner> {
             options: PolylineLayerOptions(
               polylines: [
                 Polyline(
-                  points: _path,
+                  points: _route?.path ?? [],
                   strokeWidth: 2,
                   color: Color.fromARGB(255, 0, 100, 230),
                 ),
