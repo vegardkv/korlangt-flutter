@@ -5,8 +5,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:leaflet_test_1/plannedroute.dart';
-import 'package:leaflet_test_1/config.dart';
+import 'plannedroute.dart';
+import 'config.dart';
 import 'package:positioned_tap_detector_2/positioned_tap_detector_2.dart';
 import 'package:http/http.dart' as http;
 import 'package:geojson/geojson.dart';
@@ -42,6 +42,7 @@ class RoutePlanner extends StatefulWidget {
 
 class _RoutePlannerState extends State<RoutePlanner> {
   final _markers = <LatLng>[];
+  final _markerDistances = <double>[];
   var _lastRequest = 0;
   PlannedRoute? _route;
 
@@ -80,6 +81,7 @@ class _RoutePlannerState extends State<RoutePlanner> {
     setState(() {
       _route = null;
       _lastRequest = now;
+      _markerDistances.clear();
     });
     if (_markers.length < 2) return;
     final features = await _fetchPath(now);
@@ -93,6 +95,10 @@ class _RoutePlannerState extends State<RoutePlanner> {
       final gj = jsonDecode(features.body);
       setState(() {
         _route = PlannedRoute.fromGeoJson(gj);
+        _markerDistances
+            .addAll(_markers.map((e) => _route!.distanceToPoint(e)));
+        log(_markerDistances.toString());
+        // TODO: update state based on _markerDistances
       });
     }
   }
